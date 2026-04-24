@@ -1,1 +1,29 @@
+version: "3.8"
 
+services:
+  naive-proxy:
+    image: zond80/naiveproxy-server:latest
+    container_name: naive-proxy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    environment:
+      - DOMAIN=${DOMAIN}
+      - EMAIL=${EMAIL}
+      - PROXY_USER=${PROXY_USER}
+      - PROXY_PASS=${PROXY_PASS}
+      - TZ=${TZ:-Etc/UTC}
+    volumes:
+      - caddy_data:/data
+      - caddy_config:/config
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  caddy_data:
+  caddy_config:

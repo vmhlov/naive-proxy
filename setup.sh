@@ -15,7 +15,7 @@ fi
 
 # ---------- Клонирование репозитория, если запускаем не из него ----------
 if [ ! -f "docker-compose.yml" ]; then
-    git clone https://github.com/your-username/naive-proxy.git /opt/naive-proxy
+    git clone https://github.com/vmhlov/naive-proxy.git /opt/naive-proxy
     cd /opt/naive-proxy
 fi
 

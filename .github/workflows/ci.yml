@@ -1,0 +1,39 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  lint:
+    name: shellcheck + compose validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run shellcheck on setup.sh
+        uses: ludeeus/action-shellcheck@2.0.0
+        env:
+          SHELLCHECK_OPTS: --severity=warning
+        with:
+          scandir: '.'
+          additional_files: setup.sh
+
+      - name: Render Caddyfile from example for compose validation
+        run: |
+          cp Caddyfile.example Caddyfile
+          cat > .env <<EOF
+          DOMAIN=example.com
+          EMAIL=ci@example.com
+          PROXY_USER=ci
+          PROXY_PASS=ci
+          TZ=Etc/UTC
+          EOF
+
+      - name: docker compose config
+        run: docker compose config -q
+
+      - name: Validate Dockerfile syntax
+        run: |
+          docker run --rm -i hadolint/hadolint:latest hadolint - < Dockerfile

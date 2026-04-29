@@ -1,8 +1,13 @@
-version: "3.8"
+# Compose file for running NaïveProxy server (Caddy + forwardproxy@naive).
+# `version:` is intentionally omitted: Compose v2+ ignores it and emits a warning.
 
 services:
   naive-proxy:
-    image: zond80/naiveproxy-server:latest
+    image: pocat/naiveproxy:latest
+    # Alternative: build a fully self-contained image from the included
+    # Dockerfile (xcaddy + Caddy + forwardproxy@naive). Comment `image:`
+    # above and uncomment the line below.
+    # build: .
     container_name: naive-proxy
     restart: unless-stopped
     ports:
@@ -10,12 +15,13 @@ services:
       - "443:443"
       - "443:443/udp"
     environment:
-      - DOMAIN=${DOMAIN}
-      - EMAIL=${EMAIL}
-      - PROXY_USER=${PROXY_USER}
-      - PROXY_PASS=${PROXY_PASS}
-      - TZ=${TZ:-Etc/UTC}
+      # pocat/naiveproxy reads the config path from the PATH env var
+      # (its CMD is `caddy run --config ${PATH}`), so we override PATH
+      # with the in-container Caddyfile location.
+      PATH: /etc/naiveproxy/Caddyfile
+      TZ: ${TZ:-Etc/UTC}
     volumes:
+      - ./Caddyfile:/etc/naiveproxy/Caddyfile:ro
       - caddy_data:/data
       - caddy_config:/config
     logging:
@@ -23,6 +29,11 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
+    healthcheck:
+      test: ["CMD-SHELL", "/usr/bin/caddy version >/dev/null 2>&1 || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
 
 volumes:
   caddy_data:

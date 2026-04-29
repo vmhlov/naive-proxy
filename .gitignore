@@ -1,0 +1,9 @@
+# Local secrets / runtime artifacts — never commit.
+.env
+Caddyfile
+
+# Editor / OS noise.
+.idea/
+.vscode/
+*.swp
+.DS_Store

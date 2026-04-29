@@ -168,9 +168,11 @@ TZ=${TZ}
 EOF
     chmod 600 .env
 
-    local probe
-    # Fixed-length random alphanumeric string for probe_resistance secret host.
-    probe=$(LC_ALL=C tr -dc 'a-z0-9' </dev/urandom | head -c 16).example
+    local probe random
+    # `head -c N | tr | head -c N` triggers SIGPIPE on the upstream `tr`
+    # under `set -o pipefail`, so guard the pipeline with `|| true`.
+    random=$(LC_ALL=C tr -dc 'a-z0-9' </dev/urandom 2>/dev/null | head -c 16 || true)
+    probe="${random}.example"
     log "Writing Caddyfile (probe_resistance=${probe})"
 
     # Use a tab-aware sed pipeline to substitute placeholders without risk
